@@ -6,6 +6,11 @@ on:
       - main
       - dev
       - demo
+    paths:
+      - 'src/App/**'
+      - 'src/api/**'
+      - '**.Dockerfile'
+      - '.github/workflows/docker-build.yml'
   pull_request:
     types:
       - opened
@@ -16,10 +21,44 @@ on:
       - main
       - dev
       - demo
+    paths:
+      - 'src/App/**'
+      - 'src/api/**'
+      - '**.Dockerfile'
+      - '.github/workflows/docker-build.yml'
   workflow_dispatch:
 
 jobs:
+  # Determine which components changed to build only what's needed
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      webapp: ${{ steps.filter.outputs.webapp }}
+      python-api: ${{ steps.filter.outputs.python-api }}
+      dotnet-api: ${{ steps.filter.outputs.dotnet-api }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check which components changed
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            webapp:
+              - 'src/App/**'
+              - 'src/App/WebApp.Dockerfile'
+            python-api:
+              - 'src/api/python/**'
+              - 'src/api/python/ApiApp.Dockerfile'
+            dotnet-api:
+              - 'src/api/dotnet/**'
+              - 'src/api/dotnet/CsApi.Dockerfile'
+
   build-and-push:
+    needs: changes
     runs-on: ubuntu-latest
 
     steps:
@@ -61,6 +100,7 @@ jobs:
        
          fi
       - name: Build and Push Docker Image for WebApp
+        if: needs.changes.outputs.webapp == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./src/App
@@ -71,6 +111,7 @@ jobs:
             ${{ secrets.ACR_LOGIN_SERVER || 'acrlogin.azurecr.io' }}/da-app:${{ steps.determine_tag.outputs.tagname }}_${{ steps.date.outputs.date }}_${{ github.run_number }}
 
       - name: Build and Push Docker Image for api
+        if: needs.changes.outputs.python-api == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./src/api/python
@@ -81,6 +122,7 @@ jobs:
             ${{ secrets.ACR_LOGIN_SERVER || 'acrlogin.azurecr.io' }}/da-api:${{ steps.determine_tag.outputs.tagname }}_${{ steps.date.outputs.date }}_${{ github.run_number }}
 
       - name: Build and Push Docker Image for CsApi
+        if: needs.changes.outputs.dotnet-api == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./src/api/dotnet
