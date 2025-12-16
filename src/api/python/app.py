@@ -36,7 +36,7 @@ def build_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Include routers
+    # Include  routers
     fastapi_app.include_router(chat_router, prefix="/api", tags=["chat"])
     fastapi_app.include_router(history_router, prefix="/history", tags=["history"])
     fastapi_app.include_router(history_sql_router, prefix="/historyfab", tags=["historyfab"])
