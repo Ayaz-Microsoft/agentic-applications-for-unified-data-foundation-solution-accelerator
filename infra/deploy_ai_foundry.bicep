@@ -8,7 +8,7 @@ param gptModelName string
 param gptModelVersion string
 // param azureOpenAIApiVersion string
 param gptDeploymentCapacity int
-// param embeddingModel string
+// param embed dingModel string
 // param embeddingDeploymentCapacity int
 param managedIdentityObjectId string=''
 param existingLogAnalyticsWorkspaceId string = ''
