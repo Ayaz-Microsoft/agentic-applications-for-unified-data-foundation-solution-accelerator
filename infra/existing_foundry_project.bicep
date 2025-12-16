@@ -33,3 +33,4 @@ output projectKind string = aiProject.kind
 output projectProvisioningState string = aiProject.properties.provisioningState
 // output projectDisplayName string = aiProject.properties.displayName
 // output projectDescription string = aiProject.properties.description
+//
